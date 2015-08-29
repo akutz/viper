@@ -379,7 +379,8 @@ func Get(key string) interface{} { return v.Get(key) }
 func (v *Viper) Get(key string) interface{} {
 	path := strings.Split(key, v.keyDelim)
 
-	val := v.find(strings.ToLower(key))
+	lcaseKey := strings.ToLower(key)
+	val := v.find(lcaseKey)
 
 	if val == nil {
 		source := v.find(path[0])
@@ -391,8 +392,16 @@ func (v *Viper) Get(key string) interface{} {
 			val = v.searchMap(cast.ToStringMap(source), path[1:])
 		}
 	}
+	
+	var valType interface{}
+	defVal, defExists := v.defaults[lcaseKey]
+	if defExists {
+		valType = defVal
+	} else {
+		valType = val
+	}
 
-	switch val.(type) {
+	switch valType.(type) {
 	case bool:
 		return cast.ToBool(val)
 	case string:
@@ -406,7 +415,7 @@ func (v *Viper) Get(key string) interface{} {
 	case time.Duration:
 		return cast.ToDuration(val)
 	case []string:
-		return val
+		return cast.ToStringSlice(val)
 	}
 	return val
 }
