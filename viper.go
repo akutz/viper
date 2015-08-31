@@ -545,6 +545,10 @@ func (v *Viper) BindPFlags(flags *pflag.FlagSet) (err error) {
 		}
 
 		err = v.BindPFlag(flag.Name, flag)
+		
+		// do not overwrite an existing default value for this key name
+		if _, exists := v.defaults[flag.Name]; exists { return; }
+		
 		switch flag.Value.Type() {
 		case "int", "int8", "int16", "int32", "int64":
 			v.SetDefault(flag.Name, cast.ToInt(flag.Value.String()))
